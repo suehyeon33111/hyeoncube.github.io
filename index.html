@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>수현의 큐브사이트</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#container {
+    display: flex;
+    height: calc(100vh - 80px);
+}
+
+/* 왼쪽 */
+#left {
+    width: 220px;
+    border-right: 2px solid #333;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+#left h3 {
+    margin-top: 10px;
+}
+
+/* 중앙 */
+#center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#timer {
+    font-size: 80px;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.ready {
+    color: red;
+}
+
+/* 오른쪽 */
+#right {
+    width: 240px;
+    border-left: 2px solid #333;
+    padding: 10px;
+}
+
+textarea {
+    width: 100%;
+    height: 90%;
+    resize: none;
+    background: #1c1c1c;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px;
+    font-size: 14px;
+}
+
+button {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+
+    #left, #right {
+        width: 100%;
+        border: none;
+        border-top: 2px solid #333;
+        height: 150px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #center {
+        flex: 1;
+    }
+
+    #timer {
+        font-size: 60px;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 18px;
+    }
+
+    textarea {
+        font-size: 16px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h1>수현의 큐브사이트.</h1>
+
+<div id="container">
+
+<div id="left">
+    <h3>기록</h3>
+    <ul id="recordList"></ul>
+    <button onclick="clearRecords()">기록 초기화</button>
+
+    <h3>추천 큐브</h3>
+    <ul>
+        <li>GAN 12</li>
+        <li>MoYu RS3M</li>
+        <li>QiYi MS</li>
+        <li>DaYan TengYun</li>
+        <li>YJ MGC</li>
+    </ul>
+</div>
+
+<div id="center">
+    <div id="timer">0.000</div>
+    <div style="opacity:0.6;margin-top:10px;">
+        Space / Touch 길게 → 시작 · 다시 → 정지
+    </div>
+</div>
+
+<div id="right">
+    <h3>메모장</h3>
+    <textarea id="memo" placeholder="연습 메모, 목표 기록 등"></textarea>
+</div>
+
+</div>
+
+<script>
+let startTime = 0;
+let interval = null;
+let running = false;
+let holding = false;
+
+const timer = document.getElementById("timer");
+const recordList = document.getElementById("recordList");
+const memo = document.getElementById("memo");
+
+/* 메모 저장 */
+memo.value = localStorage.getItem("memo") || "";
+memo.addEventListener("input", () => {
+    localStorage.setItem("memo", memo.value);
+});
+
+/* 타이머 로직 */
+function startTimer() {
+    startTime = Date.now();
+    interval = setInterval(() => {
+        timer.textContent = ((Date.now() - startTime) / 1000).toFixed(3);
+    }, 10);
+    running = true;
+}
+
+function stopTimer() {
+    clearInterval(interval);
+    running = false;
+    saveRecord(timer.textContent);
+}
+
+function resetTimer() {
+    clearInterval(interval);
+    running = false;
+    timer.textContent = "0.000";
+}
+
+function saveRecord(time) {
+    const li = document.createElement("li");
+    li.textContent = time;
+    recordList.prepend(li);
+}
+
+function clearRecords() {
+    recordList.innerHTML = "";
+}
+
+/* PC 키보드 */
+document.addEventListener("keydown", e => {
+    if (e.code === "Space" && !holding && !running) {
+        holding = true;
+        timer.classList.add("ready");
+    }
+    if (e.key.toLowerCase() === "m") {
+        resetTimer();
+    }
+});
+
+document.addEventListener("keyup", e => {
+    if (e.code === "Space" && holding && !running) {
+        holding = false;
+        timer.classList.remove("ready");
+        startTimer();
+    } else if (e.code === "Space" && running) {
+        stopTimer();
+    }
+});
+
+/* 모바일 터치 */
+timer.addEventListener("touchstart", e => {
+    e.preventDefault();
+    if (!running) {
+        holding = true;
+        timer.classList.add("ready");
+    }
+});
+
+timer.addEventListener("touchend", e => {
+    e.preventDefault();
+    if (holding && !running) {
+        holding = false;
+        timer.classList.remove("ready");
+        startTimer();
+    } else if (running) {
+        stopTimer();
+    }
+});
+</script>
+
+</body>
+</html>
