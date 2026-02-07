@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>수현의 큐브사이트</title>
 
 <style>
@@ -11,34 +11,54 @@
 html, body {
     margin: 0;
     padding: 0;
-    height: 100vh;
+    height: 100%;
     background: #111;
-    color: white;
+    color: #fff;
     font-family: Arial, sans-serif;
     overflow: hidden;
 }
 
+/* 제목 */
 h1 {
     margin: 0;
     height: 44px;
     line-height: 44px;
     text-align: center;
     font-size: 1.6em;
+    border-bottom: 2px solid #333;
 }
 
+/* 전체 */
 #container {
     display: flex;
     height: calc(100vh - 44px);
 }
 
+/* 왼쪽 */
 #left {
-    width: 220px;
+    width: 240px;
     padding: 8px;
     border-right: 2px solid #333;
     overflow-y: auto;
     font-size: 14px;
 }
 
+.section {
+    margin-bottom: 14px;
+}
+
+.section h3 {
+    margin: 6px 0;
+    font-size: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+}
+
+#recordList {
+    padding-left: 18px;
+}
+
+/* 중앙 */
 #center {
     flex: 1;
     display: flex;
@@ -49,29 +69,32 @@ h1 {
 
 #timer {
     font-size: 78px;
-    cursor: pointer;
     user-select: none;
+    cursor: pointer;
 }
 
-.ready { color: red; }
+.ready {
+    color: red;
+}
 
 #scramble {
     margin-top: 10px;
     font-size: 16px;
-    max-width: 90%;
     text-align: center;
+    max-width: 90%;
     opacity: 0.85;
 }
 
+/* 오른쪽 */
 #right {
-    width: 230px;
+    width: 240px;
     padding: 8px;
     border-left: 2px solid #333;
 }
 
 textarea {
     width: 100%;
-    height: 120px;
+    height: 130px;
     background: #1c1c1c;
     color: white;
     border: 1px solid #444;
@@ -81,20 +104,27 @@ textarea {
 
 button {
     width: 100%;
-    padding: 6px;
     margin-top: 6px;
+    padding: 6px;
+    cursor: pointer;
 }
 
 /* 모바일 */
 @media (max-width: 768px) {
-    #container { flex-direction: column; }
+    #container {
+        flex-direction: column;
+    }
+
     #left, #right {
         width: 100%;
-        height: 160px;
+        height: 180px;
         border: none;
         border-top: 2px solid #333;
     }
-    #timer { font-size: 60px; }
+
+    #timer {
+        font-size: 60px;
+    }
 }
 </style>
 </head>
@@ -107,18 +137,24 @@ button {
 
 <!-- 왼쪽 -->
 <div id="left">
-    <h3>기록</h3>
-    <ul id="recordList"></ul>
-    <button onclick="clearRecords()">기록 초기화</button>
 
-    <h3>추천 큐브</h3>
-    <ul>
-        <li>GAN 12</li>
-        <li>MoYu RS3M</li>
-        <li>QiYi MS</li>
-        <li>DaYan TengYun</li>
-        <li>YJ MGC</li>
-    </ul>
+    <div class="section">
+        <h3>기록</h3>
+        <ul id="recordList"></ul>
+        <button onclick="clearRecords()">기록 초기화</button>
+    </div>
+
+    <div class="section">
+        <h3>추천 큐브</h3>
+        <ul>
+            <li>GAN 12</li>
+            <li>MoYu RS3M</li>
+            <li>QiYi MS</li>
+            <li>DaYan TengYun</li>
+            <li>YJ MGC</li>
+        </ul>
+    </div>
+
 </div>
 
 <!-- 중앙 -->
@@ -130,7 +166,7 @@ button {
 <!-- 오른쪽 -->
 <div id="right">
     <h3>메모장</h3>
-    <textarea id="memo" placeholder="메모 작성"></textarea>
+    <textarea id="memo" placeholder="연습 메모"></textarea>
 </div>
 
 </div>
@@ -147,7 +183,7 @@ const memo = document.getElementById("memo");
 const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
 
-/* 메모장 포커스 */
+/* 메모장 포커스 시 타이머 비활성 */
 memo.addEventListener("focus", () => {
     timerEnabled = false;
     stopTimer();
@@ -160,12 +196,6 @@ document.addEventListener("mousedown", e => {
     }
 });
 
-/* 스크롤 방지 */
-window.addEventListener("keydown", e => {
-    if (!timerEnabled) return;
-    if (e.code === "Space") e.preventDefault();
-}, true);
-
 /* 타이머 */
 function startTimer() {
     startTime = Date.now();
@@ -176,7 +206,6 @@ function startTimer() {
 }
 
 function stopTimer() {
-    if (!running) return;
     clearInterval(interval);
     running = false;
 }
@@ -187,23 +216,25 @@ function saveRecord(time) {
     recordList.prepend(li);
 }
 
+/* 스크램블 */
 function generateScramble() {
     const moves = ["R","L","U","D","F","B"];
     const suf = ["","'","2"];
-    let s = [];
-    for (let i=0;i<20;i++){
-        s.push(
+    let arr = [];
+    for (let i=0;i<20;i++) {
+        arr.push(
             moves[Math.floor(Math.random()*6)] +
             suf[Math.floor(Math.random()*3)]
         );
     }
-    scrambleDiv.textContent = s.join(" ");
+    scrambleDiv.textContent = arr.join(" ");
 }
 
 /* PC */
 window.addEventListener("keydown", e => {
     if (!timerEnabled) return;
     if (e.code === "Space" && !holding && !running) {
+        e.preventDefault();
         holding = true;
         timer.classList.add("ready");
     }
@@ -225,13 +256,13 @@ window.addEventListener("keyup", e => {
 });
 
 /* 모바일 */
-timer.addEventListener("touchstart", e => {
+timer.addEventListener("touchstart", () => {
     if (!timerEnabled) return;
     holding = true;
     timer.classList.add("ready");
-}, { passive:false });
+});
 
-timer.addEventListener("touchend", e => {
+timer.addEventListener("touchend", () => {
     if (!timerEnabled) return;
     if (holding && !running) {
         holding = false;
@@ -242,7 +273,7 @@ timer.addEventListener("touchend", e => {
         saveRecord(timer.textContent);
         generateScramble();
     }
-}, { passive:false });
+});
 
 generateScramble();
 </script>
