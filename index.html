@@ -2,130 +2,45 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>수현의 큐브사이트</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{box-sizing:border-box}
-
-html,body{
+body{
     margin:0;
-    height:100%;
     background:#111;
-    color:#fff;
+    color:white;
     font-family:Arial,sans-serif;
-    overflow:hidden;
+    text-align:center;
 }
-
-/* 스크롤바 */
-::-webkit-scrollbar{
-    width:10px;
-}
-::-webkit-scrollbar-track{
-    background:#111;
-}
-::-webkit-scrollbar-thumb{
-    background:#444;
-    border-radius:6px;
-}
-::-webkit-scrollbar-thumb:hover{
-    background:#666;
-}
-
 h1{
     margin:0;
-    height:44px;
-    text-align:center;
-    line-height:44px;
-    font-size:1.5em;
+    padding:10px;
     border-bottom:2px solid #333;
 }
-
-#container{
-    display:flex;
-    height:calc(100vh - 44px);
+#timer{
+    font-size:80px;
+    margin-top:40px;
+    user-select:none;
 }
-
-/* 왼쪽 */
-#left{
-    width:260px;
-    border-right:2px solid #333;
-    padding:8px;
-    overflow-y:auto;
-    font-size:14px;
+.ready{color:red;}
+#scramble{
+    margin-top:15px;
+    opacity:.9;
 }
-
-#recordList li{
-    list-style:none;
-    padding:3px 0;
-    border-bottom:1px solid #222;
+#records{
+    max-width:300px;
+    margin:20px auto;
+    text-align:left;
     font-family:monospace;
 }
-
-#recordList li:first-child{
-    font-weight:bold;
-    border-bottom:2px solid #444;
-}
-
-/* 중앙 */
-#center{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-}
-
-#timer{
-    font-size:78px;
-    user-select:none;
-    cursor:pointer;
-}
-
-.ready{color:red}
-
-#scramble{
-    margin-top:10px;
-    text-align:center;
-    max-width:90%;
-    opacity:.85;
-}
-
-#hint{
-    margin-top:6px;
-    font-size:12px;
-    opacity:.5;
-}
-
-/* 오른쪽 */
-#right{
-    width:240px;
-    border-left:2px solid #333;
-    padding:8px;
-    display:flex;
-    flex-direction:column;
-}
-
-textarea{
-    flex:1;
-    resize:none;
-    background:#1c1c1c;
-    color:#fff;
-    border:1px solid #444;
+button{
+    width:300px;
     padding:6px;
-    font-size:14px;
-}
-
-/* 모바일 */
-@media(max-width:768px){
-    #container{flex-direction:column}
-    #left,#right{
-        width:100%;
-        height:160px;
-        border:none;
-        border-top:2px solid #333;
-    }
-    #timer{font-size:60px}
+    background:#222;
+    color:white;
+    border:1px solid #444;
+    cursor:pointer;
 }
 </style>
 </head>
@@ -134,171 +49,92 @@ textarea{
 
 <h1>수현의 큐브사이트</h1>
 
-<div id="container">
+<div id="timer">0.000</div>
+<div id="scramble"></div>
 
-<!-- 왼쪽 -->
-<div id="left">
-    <ul id="recordList">
-        <li>time | AO5 | 종류</li>
-    </ul>
-
-    <h3>추천 큐브</h3>
-    <ul>
-        <li>GAN 12</li>
-        <li>MoYu RS3M</li>
-        <li>QiYi MS</li>
-        <li>DaYan TengYun</li>
-        <li>YJ MGC</li>
-    </ul>
+<div id="records">
+    <b>기록</b>
+    <ul id="list"></ul>
 </div>
 
-<!-- 중앙 -->
-<div id="center">
-    <div id="timer">0.000</div>
-    <div id="scramble"></div>
-    <div id="hint">Space / 숫자 터치 → 시작 · 다시 → 정지</div>
-</div>
-
-<!-- 오른쪽 -->
-<div id="right">
-    <h3>메모장</h3>
-    <textarea id="memo" placeholder="연습 메모"></textarea>
-</div>
-
-</div>
+<button onclick="clearRecords()">기록 초기화</button>
 
 <script>
 /* 상태 */
-let startTime=0,interval=null,running=false,holding=false;
-let memoFocus=false;
-
-const timer=document.getElementById("timer");
-const recordList=document.getElementById("recordList");
-const memo=document.getElementById("memo");
-
-/* 종목 (지금은 333 고정, 이후 설정버튼으로 확장 가능) */
-let cubeType="333";
-
-/* 메모 */
-memo.value=localStorage.getItem("memo")||"";
-memo.addEventListener("focus",()=>memoFocus=true);
-memo.addEventListener("blur",()=>memoFocus=false);
-memo.addEventListener("input",()=>{
-    localStorage.setItem("memo",memo.value);
-});
-
-/* 기록 */
+let running=false,holding=false,startTime,interval;
 let records=JSON.parse(localStorage.getItem("records")||"[]");
 
-function drawRecords(){
-    recordList.innerHTML="<li>time | AO5 | 종류</li>";
-
-    records.forEach((r,i)=>{
-        let ao5="—";
-        if(records.length>=i+5){
-            const slice=records.slice(i,i+5).map(v=>v.time);
-            ao5=(slice.reduce((a,b)=>a+b,0)/5).toFixed(3);
-        }
-        const li=document.createElement("li");
-        li.textContent=`${r.time.toFixed(3)} | ${ao5} | ${r.type}`;
-        recordList.appendChild(li);
-    });
-}
-
-function saveRecord(t){
-    records.unshift({time:t,type:cubeType});
-    localStorage.setItem("records",JSON.stringify(records));
-    drawRecords();
-}
-
-/* 타이머 */
-function startTimer(){
-    startTime=Date.now();
-    interval=setInterval(()=>{
-        timer.textContent=((Date.now()-startTime)/1000).toFixed(3);
-    },10);
-    running=true;
-}
-
-function stopTimer(){
-    clearInterval(interval);
-    running=false;
-    saveRecord(parseFloat(timer.textContent));
-    generateScramble();
-}
-
-function resetTimer(){
-    clearInterval(interval);
-    running=false;
-    holding=false;
-    timer.textContent="0.000";
-    timer.classList.remove("ready");
-}
+const timer=document.getElementById("timer");
+const scrambleDiv=document.getElementById("scramble");
+const list=document.getElementById("list");
 
 /* 스크램블 */
-function generateScramble(len=20){
+function scramble(){
     const m=["R","L","U","D","F","B"];
     const s=["","'","2"];
-    let last="",res=[];
-    for(let i=0;i<len;i++){
+    let out=[],last="";
+    for(let i=0;i<20;i++){
         let c;
         do{c=m[Math.floor(Math.random()*6)]}while(c===last);
         last=c;
-        res.push(c+s[Math.floor(Math.random()*3)]);
+        out.push(c+s[Math.floor(Math.random()*3)]);
     }
-    document.getElementById("scramble").textContent=res.join(" ");
+    scrambleDiv.textContent=out.join(" ");
+}
+scramble();
+
+/* 기록 */
+function draw(){
+    list.innerHTML="";
+    records.forEach(t=>{
+        const li=document.createElement("li");
+        li.textContent=t.toFixed(3);
+        list.appendChild(li);
+    });
+}
+draw();
+
+function save(t){
+    records.unshift(t);
+    localStorage.setItem("records",JSON.stringify(records));
+    draw();
 }
 
-/* 키보드 */
-window.addEventListener("keydown",e=>{
-    if(memoFocus) return;
+function clearRecords(){
+    records=[];
+    localStorage.removeItem("records");
+    draw();
+}
 
+/* 타이머 */
+window.addEventListener("keydown",e=>{
     if(e.code==="Space"){
         e.preventDefault();
-        if(!holding && !running){
+        if(!running){
             holding=true;
             timer.classList.add("ready");
         }
     }
 });
-
 window.addEventListener("keyup",e=>{
-    if(memoFocus) return;
-
     if(e.code==="Space"){
         e.preventDefault();
         if(holding && !running){
             holding=false;
             timer.classList.remove("ready");
-            startTimer();
+            startTime=Date.now();
+            interval=setInterval(()=>{
+                timer.textContent=((Date.now()-startTime)/1000).toFixed(3);
+            },10);
+            running=true;
         }else if(running){
-            stopTimer();
+            clearInterval(interval);
+            running=false;
+            save(parseFloat(timer.textContent));
+            scramble();
         }
     }
 });
-
-/* 모바일 터치 */
-timer.addEventListener("touchstart",e=>{
-    e.preventDefault();
-    if(!holding && !running){
-        holding=true;
-        timer.classList.add("ready");
-    }
-});
-timer.addEventListener("touchend",e=>{
-    e.preventDefault();
-    if(holding && !running){
-        holding=false;
-        timer.classList.remove("ready");
-        startTimer();
-    }else if(running){
-        stopTimer();
-    }
-});
-
-/* 시작 */
-drawRecords();
-generateScramble();
 </script>
 
 </body>
