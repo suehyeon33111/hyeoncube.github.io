@@ -46,7 +46,7 @@ h1 {
     font-size: 80px;
     user-select: none;
     touch-action: manipulation;
-    cursor: pointer; /* 모바일에서 눌러야 한다는 느낌 */
+    cursor: pointer; /* 모바일 터치 느낌 */
 }
 
 .ready {
@@ -138,7 +138,7 @@ button {
 <div id="center">
     <div id="timer">0.000</div>
     <div style="opacity:0.6;margin-top:10px;">
-        Space / 터치 숫자 → 시작 · 다시 → 정지
+        Space / 숫자 영역 터치 → 시작 · 다시 → 정지
     </div>
 </div>
 
@@ -165,6 +165,43 @@ memo.addEventListener("input", () => {
     localStorage.setItem("memo", memo.value);
 });
 
+/* 기록 불러오기 */
+function loadRecords() {
+    const saved = JSON.parse(localStorage.getItem("records") || "[]");
+    recordList.innerHTML = "";
+    saved.forEach(record => {
+        const li = document.createElement("li");
+        li.textContent = record;
+        recordList.appendChild(li);
+    });
+}
+
+/* 기록 저장 (localStorage 포함) */
+function saveRecord(time) {
+    const now = new Date();
+    const dateStr = now.getFullYear() + "-" +
+                    String(now.getMonth()+1).padStart(2,"0") + "-" +
+                    String(now.getDate()).padStart(2,"0");
+    const timeStr = String(now.getHours()).padStart(2,"0") + ":" +
+                    String(now.getMinutes()).padStart(2,"0") + ":" +
+                    String(now.getSeconds()).padStart(2,"0");
+    const recordText = `${dateStr} / ${timeStr} : ${time}s`;
+
+    const li = document.createElement("li");
+    li.textContent = recordText;
+    recordList.prepend(li);
+
+    const saved = JSON.parse(localStorage.getItem("records") || "[]");
+    saved.unshift(recordText);
+    localStorage.setItem("records", JSON.stringify(saved));
+}
+
+/* 기록 초기화 */
+function clearRecords() {
+    recordList.innerHTML = "";
+    localStorage.removeItem("records");
+}
+
 /* 타이머 시작 */
 function startTimer() {
     startTime = Date.now();
@@ -174,7 +211,7 @@ function startTimer() {
     running = true;
 }
 
-/* 타이머 정지 + 기록 저장 */
+/* 타이머 정지 */
 function stopTimer() {
     clearInterval(interval);
     running = false;
@@ -188,25 +225,6 @@ function resetTimer() {
     holding = false;
     timer.textContent = "0.000";
     timer.classList.remove("ready");
-}
-
-/* 기록 저장 (날짜/시간 포함) */
-function saveRecord(time) {
-    const li = document.createElement("li");
-    const now = new Date();
-    const dateStr = now.getFullYear() + "-" +
-                    String(now.getMonth()+1).padStart(2,"0") + "-" +
-                    String(now.getDate()).padStart(2,"0");
-    const timeStr = String(now.getHours()).padStart(2,"0") + ":" +
-                    String(now.getMinutes()).padStart(2,"0") + ":" +
-                    String(now.getSeconds()).padStart(2,"0");
-    li.textContent = `${dateStr} / ${timeStr} : ${time}s`;
-    recordList.prepend(li);
-}
-
-/* 기록 초기화 */
-function clearRecords() {
-    recordList.innerHTML = "";
 }
 
 /* PC 키보드 이벤트 */
@@ -232,7 +250,7 @@ document.addEventListener("keyup", e => {
 
 /* 모바일 터치 이벤트 (숫자 영역만) */
 timer.addEventListener("touchstart", e => {
-    e.preventDefault(); // 스크롤 방지
+    e.preventDefault();
     if (!running && !holding) {
         holding = true;
         timer.classList.add("ready");
@@ -249,6 +267,9 @@ timer.addEventListener("touchend", e => {
         stopTimer();
     }
 });
+
+/* 페이지 로드 시 기록 불러오기 */
+loadRecords();
 </script>
 
 </body>
