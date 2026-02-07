@@ -2,10 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-
-<!-- ⭐ 모바일 + GitHub 필수 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
 <title>수현의 큐브사이트</title>
 
 <style>
@@ -18,7 +15,7 @@ html, body {
     background: #111;
     color: white;
     font-family: Arial, sans-serif;
-    overflow: hidden; /* ⭐ 스페이스 스크롤 원천 차단 */
+    overflow: hidden;
 }
 
 /* 제목 */
@@ -167,7 +164,7 @@ const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
 const memo = document.getElementById("memo");
 
-/* ⭐ Space 스크롤 완전 차단 (GitHub 필수) */
+/* ⭐ Space 스크롤 완전 차단 */
 window.addEventListener("keydown", e => {
     if (e.code === "Space") {
         e.preventDefault();
@@ -257,333 +254,24 @@ function generateScramble(len = 20) {
     scrambleDiv.textContent = out.join(" ");
 }
 
-/* PC */
+/* PC 키보드 (메모장 예외) */
 window.addEventListener("keydown", e => {
+
+    if (document.activeElement === memo) return;
+
     if (e.code === "Space" && !holding && !running) {
         holding = true;
         timer.classList.add("ready");
     }
+
     if (e.key.toLowerCase() === "m") resetTimer();
 });
 
 window.addEventListener("keyup", e => {
+
+    if (document.activeElement === memo) return;
+
     if (e.code === "Space") {
-        if (holding && !running) {
-            holding = false;
-            timer.classList.remove("ready");
-            startTimer();
-        } else if (running) {
-            stopTimer();
-        }
-    }
-});
-
-/* ⭐ 모바일 숫자만 터치 (GitHub 핵심) */
-timer.addEventListener("touchstart", e => {
-    e.preventDefault();
-    if (!holding && !running) {
-        holding = true;
-        timer.classList.add("ready");
-    }
-}, { passive: false });
-
-timer.addEventListener("touchend", e => {
-    e.preventDefault();
-    if (holding && !running) {
-        holding = false;
-        timer.classList.remove("ready");
-        startTimer();
-    } else if (running) {
-        stopTimer();
-    }
-}, { passive: false });
-
-/* 시작 */
-loadRecords();
-generateScramble();
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>수현의 큐브사이트</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: white;
-}
-
-/* 제목 */
-h1 {
-    margin: 0;
-    padding: 8px 0;
-    text-align: center;
-    font-size: 1.6em;
-    height: 44px; /* ⭐ 고정 */
-}
-
-/* 전체 컨테이너 */
-#container {
-    display: flex;
-    height: calc(100vh - 44px); /* ⭐ 제목 제외 */
-}
-
-/* 왼쪽 */
-#left {
-    width: 220px;
-    border-right: 2px solid #333;
-    padding: 8px;
-    overflow-y: auto;
-    font-size: 14px;
-}
-
-/* 중앙 */
-#center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#timer {
-    font-size: 78px;
-    user-select: none;
-    cursor: pointer;
-}
-
-.ready {
-    color: red;
-}
-
-#scramble {
-    margin-top: 10px;
-    font-size: 16px;
-    max-width: 90%;
-    text-align: center;
-    word-wrap: break-word;
-    opacity: 0.85;
-}
-
-#hint {
-    margin-top: 6px;
-    font-size: 12px;
-    opacity: 0.5;
-}
-
-/* 오른쪽 */
-#right {
-    width: 230px;
-    border-left: 2px solid #333;
-    padding: 8px;
-    overflow-y: auto;
-}
-
-textarea {
-    width: 100%;
-    height: calc(100% - 26px);
-    background: #1c1c1c;
-    color: white;
-    border: 1px solid #444;
-    resize: none;
-    padding: 6px;
-    font-size: 14px;
-}
-
-button {
-    width: 100%;
-    padding: 6px;
-    margin-top: 6px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* 모바일 */
-@media (max-width: 768px) {
-    #container {
-        flex-direction: column;
-    }
-
-    #left, #right {
-        width: 100%;
-        height: 160px;
-        border: none;
-        border-top: 2px solid #333;
-    }
-
-    #timer {
-        font-size: 60px;
-    }
-
-    textarea {
-        height: 100px;
-        font-size: 15px;
-    }
-}
-</style>
-</head>
-
-<body>
-
-<h1>수현의 큐브사이트</h1>
-
-<div id="container">
-
-<!-- 왼쪽 -->
-<div id="left">
-    <h3>기록</h3>
-    <ul id="recordList"></ul>
-    <button onclick="clearRecords()">기록 초기화</button>
-
-    <h3>추천 큐브</h3>
-    <ul>
-        <li>GAN 12</li>
-        <li>MoYu RS3M</li>
-        <li>QiYi MS</li>
-        <li>DaYan TengYun</li>
-        <li>YJ MGC</li>
-    </ul>
-</div>
-
-<!-- 중앙 -->
-<div id="center">
-    <div id="timer">0.000</div>
-    <div id="scramble"></div>
-    <div id="hint">Space / 숫자 터치 → 시작 · 다시 → 정지</div>
-</div>
-
-<!-- 오른쪽 -->
-<div id="right">
-    <h3>메모장</h3>
-    <textarea id="memo" placeholder="연습 메모, 목표 기록"></textarea>
-</div>
-
-</div>
-
-<script>
-let startTime = 0;
-let interval = null;
-let running = false;
-let holding = false;
-
-const timer = document.getElementById("timer");
-const recordList = document.getElementById("recordList");
-const scrambleDiv = document.getElementById("scramble");
-const memo = document.getElementById("memo");
-
-/* 메모 */
-memo.value = localStorage.getItem("memo") || "";
-memo.addEventListener("input", () => {
-    localStorage.setItem("memo", memo.value);
-});
-
-/* 기록 로드 */
-function loadRecords() {
-    const records = JSON.parse(localStorage.getItem("records") || "[]");
-    recordList.innerHTML = "";
-    records.forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r;
-        recordList.appendChild(li);
-    });
-}
-
-/* 기록 저장 */
-function saveRecord(time) {
-    const now = new Date();
-    const date =
-        now.getFullYear() + "-" +
-        String(now.getMonth() + 1).padStart(2, "0") + "-" +
-        String(now.getDate()).padStart(2, "0");
-    const clock =
-        String(now.getHours()).padStart(2, "0") + ":" +
-        String(now.getMinutes()).padStart(2, "0");
-    const text = `${date} / ${clock} : ${time}s`;
-
-    const li = document.createElement("li");
-    li.textContent = text;
-    recordList.prepend(li);
-
-    const records = JSON.parse(localStorage.getItem("records") || "[]");
-    records.unshift(text);
-    localStorage.setItem("records", JSON.stringify(records));
-}
-
-/* 초기화 */
-function clearRecords() {
-    recordList.innerHTML = "";
-    localStorage.removeItem("records");
-}
-
-/* 타이머 */
-function startTimer() {
-    startTime = Date.now();
-    interval = setInterval(() => {
-        timer.textContent = ((Date.now() - startTime) / 1000).toFixed(3);
-    }, 10);
-    running = true;
-}
-
-function stopTimer() {
-    clearInterval(interval);
-    running = false;
-    saveRecord(timer.textContent);
-    generateScramble();
-}
-
-function resetTimer() {
-    clearInterval(interval);
-    running = false;
-    holding = false;
-    timer.textContent = "0.000";
-    timer.classList.remove("ready");
-    generateScramble();
-}
-
-/* 스크램블 */
-function generateScramble(len = 20) {
-    const moves = ["R","L","U","D","F","B"];
-    const suffix = ["","'","2"];
-    let last = "";
-    let result = [];
-    for (let i = 0; i < len; i++) {
-        let m;
-        do {
-            m = moves[Math.floor(Math.random() * moves.length)];
-        } while (m === last);
-        last = m;
-        result.push(m + suffix[Math.floor(Math.random() * suffix.length)]);
-    }
-    scrambleDiv.textContent = result.join(" ");
-}
-
-/* PC 키보드 */
-window.addEventListener("keydown", e => {
-    if (e.code === "Space") {
-        e.preventDefault();
-        if (!holding && !running) {
-            holding = true;
-            timer.classList.add("ready");
-        }
-    }
-    if (e.key.toLowerCase() === "m") resetTimer();
-});
-
-window.addEventListener("keyup", e => {
-    if (e.code === "Space") {
-        e.preventDefault();
         if (holding && !running) {
             holding = false;
             timer.classList.remove("ready");
@@ -601,7 +289,7 @@ timer.addEventListener("touchstart", e => {
         holding = true;
         timer.classList.add("ready");
     }
-});
+}, { passive: false });
 
 timer.addEventListener("touchend", e => {
     e.preventDefault();
@@ -612,7 +300,7 @@ timer.addEventListener("touchend", e => {
     } else if (running) {
         stopTimer();
     }
-});
+}, { passive: false });
 
 /* 시작 */
 loadRecords();
@@ -621,4 +309,3 @@ generateScramble();
 
 </body>
 </html>
-
