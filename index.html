@@ -6,139 +6,92 @@
 <title>수현의 큐브사이트</title>
 
 <style>
-* { box-sizing: border-box; }
-
-html, body {
-    margin: 0;
-    height: 100%;
-    background: #111;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
+*{box-sizing:border-box}
+html,body{
+    margin:0;height:100%;
+    background:#111;color:#fff;
+    font-family:Arial,sans-serif;
+    overflow:hidden;
 }
-
-/* ===== 상단 ===== */
-header {
-    height: 44px;
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    border-bottom: 2px solid #333;
+header{
+    height:44px;
+    display:flex;
+    align-items:center;
+    padding:0 12px;
+    border-bottom:2px solid #333;
 }
-
-header h1 {
-    margin: 0;
-    font-size: 1.5em;
+header h1{margin:0;font-size:1.5em}
+#settingsBtn{
+    margin-left:auto;
+    background:none;border:none;
+    color:#fff;font-size:20px;
+    cursor:pointer;
 }
-
-#settingsBtn {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
+#container{
+    display:flex;
+    height:calc(100vh - 44px);
 }
-
-/* ===== 레이아웃 ===== */
-#container {
-    display: flex;
-    height: calc(100vh - 44px);
+#left{
+    width:280px;
+    padding:10px;
+    border-right:2px solid #333;
+    overflow-y:auto;
+    font-family:monospace;
 }
-
-/* 왼쪽 */
-#left {
-    width: 280px;
-    padding: 10px;
-    border-right: 2px solid #333;
-    overflow-y: auto;
-    font-family: monospace;
+#left::-webkit-scrollbar{width:8px}
+#left::-webkit-scrollbar-thumb{background:#444}
+#center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
 }
-
-/* 스크롤 색 */
-#left::-webkit-scrollbar {
-    width: 8px;
+#timer{
+    font-size:78px;
+    user-select:none;
+    cursor:pointer;
 }
-#left::-webkit-scrollbar-track {
-    background: #1a1a1a;
+.ready{color:red}
+#scramble{
+    margin-top:12px;
+    text-align:center;
+    max-width:90%;
 }
-#left::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
+#right{
+    width:260px;
+    padding:10px;
+    border-left:2px solid #333;
 }
-
-/* 중앙 */
-#center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+textarea{
+    width:100%;
+    height:140px;
+    background:#1c1c1c;
+    color:#fff;
+    border:1px solid #444;
+    resize:none;
 }
-
-#timer {
-    font-size: 78px;
-    cursor: pointer;
-    user-select: none;
+#recordList{list-style:none;padding:0;margin:6px 0}
+#settingsModal{
+    position:fixed;inset:0;
+    display:none;
+    background:rgba(0,0,0,.6);
+    justify-content:center;
+    align-items:center;
 }
-.ready { color: red; }
-
-#scramble {
-    margin-top: 12px;
-    text-align: center;
-    max-width: 90%;
-    opacity: 0.85;
+#settingsBox{
+    background:#1c1c1c;
+    padding:14px;
+    border:2px solid #333;
+    width:260px;
 }
-
-/* 오른쪽 */
-#right {
-    width: 260px;
-    padding: 10px;
-    border-left: 2px solid #333;
-}
-
-textarea {
-    width: 100%;
-    height: 140px;
-    background: #1c1c1c;
-    color: white;
-    border: 1px solid #444;
-    resize: none;
-}
-
-/* 기록 */
-#recordList {
-    list-style: none;
-    padding: 0;
-    margin: 6px 0;
-}
-
-/* 설정 모달 */
-#settingsModal {
-    position: fixed;
-    inset: 0;
-    display: none;
-    background: rgba(0,0,0,.6);
-    justify-content: center;
-    align-items: center;
-}
-#settingsBox {
-    background: #1c1c1c;
-    padding: 14px;
-    border: 2px solid #333;
-    width: 260px;
-}
-
-/* 모바일 */
-@media (max-width:768px){
-    #container { flex-direction: column; }
-    #left, #right {
-        width: 100%;
-        height: 200px;
-        border: none;
-        border-top: 2px solid #333;
+@media(max-width:768px){
+    #container{flex-direction:column}
+    #left,#right{
+        width:100%;height:200px;
+        border:none;border-top:2px solid #333;
     }
-    #timer { font-size: 60px; }
+    #timer{font-size:60px}
 }
 </style>
 </head>
@@ -152,96 +105,82 @@ textarea {
 
 <div id="container">
 
-<!-- 왼쪽 -->
 <div id="left">
-    <b>time | AO5</b>
-    <ul id="recordList"></ul>
-
-    <hr>
-    <b>추천 큐브</b>
-    <ul>
-        <li>GAN 12</li>
-        <li>MoYu RS3M</li>
-        <li>QiYi MS</li>
-        <li>DaYan TengYun</li>
-        <li>YJ MGC</li>
-    </ul>
+<b>time | AO5</b>
+<ul id="recordList"></ul>
+<hr>
+<b>추천 큐브</b>
+<ul>
+<li>GAN 12</li>
+<li>MoYu RS3M</li>
+<li>QiYi MS</li>
+<li>DaYan TengYun</li>
+<li>YJ MGC</li>
+</ul>
 </div>
 
-<!-- 중앙 -->
 <div id="center">
-    <div id="timer">0.000</div>
-    <div id="scramble"></div>
+<div id="timer">0.000</div>
+<div id="scramble"></div>
 </div>
 
-<!-- 오른쪽 -->
 <div id="right">
-    <b>메모장</b>
-    <textarea id="memo" placeholder="연습 메모 / 목표 기록"></textarea>
+<b>메모장</b>
+<textarea id="memo"></textarea>
 </div>
 
 </div>
 
-<!-- 설정 -->
 <div id="settingsModal">
-    <div id="settingsBox">
-        <b>종목 설정</b><br><br>
-        <select id="cubeType">
-            <option value="222">2×2</option>
-            <option value="333">3×3</option>
-            <option value="444">4×4</option>
-            <option value="555">5×5</option>
-            <option value="skewb">스큐브</option>
-            <option value="pyraminx">피라밍크스</option>
-            <option value="megaminx">메가밍크스</option>
-            <option value="clock">클락 (Clock)</option>
-            <option value="blind">블라인드</option>
-            <option value="oh">한손</option>
-        </select>
-        <br><br>
-        <button onclick="closeSettings()">닫기</button>
-    </div>
+<div id="settingsBox">
+<b>종목 설정</b><br><br>
+<select id="cubeType">
+<option value="222">2×2</option>
+<option value="333">3×3</option>
+<option value="444">4×4</option>
+<option value="555">5×5</option>
+<option value="skewb">스큐브</option>
+<option value="pyraminx">피라밍크스</option>
+<option value="megaminx">메가밍크스</option>
+<option value="clock">클락</option>
+<option value="blind">블라인드</option>
+<option value="oh">한손</option>
+</select><br><br>
+<button onclick="closeSettings()">닫기</button>
+</div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-const timer = document.getElementById("timer");
-const scrambleDiv = document.getElementById("scramble");
-const recordList = document.getElementById("recordList");
-const memo = document.getElementById("memo");
-const cubeType = document.getElementById("cubeType");
-const modal = document.getElementById("settingsModal");
+const timer=document.getElementById("timer");
+const scrambleDiv=document.getElementById("scramble");
+const recordList=document.getElementById("recordList");
+const memo=document.getElementById("memo");
+const cubeType=document.getElementById("cubeType");
+const modal=document.getElementById("settingsModal");
 
-let running=false, holding=false;
-let startTime=0, interval=null;
-let records = JSON.parse(localStorage.getItem("records")||"[]");
+let running=false,holding=false,start=0,interval=null;
+let records=JSON.parse(localStorage.getItem("records")||"[]");
 
-/* ===== 설정 ===== */
 document.getElementById("settingsBtn").onclick=()=>modal.style.display="flex";
 window.closeSettings=()=>modal.style.display="none";
 
-cubeType.value = localStorage.getItem("cubeType") || "333";
+cubeType.value=localStorage.getItem("cubeType")||"333";
 cubeType.onchange=()=>{
-    localStorage.setItem("cubeType", cubeType.value);
+    localStorage.setItem("cubeType",cubeType.value);
     generateScramble();
 };
 
-/* ===== 메모 ===== */
-memo.value = localStorage.getItem("memo") || "";
-memo.addEventListener("input",()=>{
-    localStorage.setItem("memo", memo.value);
-});
+memo.value=localStorage.getItem("memo")||"";
+memo.oninput=()=>localStorage.setItem("memo",memo.value);
 
-/* ===== AO5 표시 ===== */
 function drawRecords(){
     recordList.innerHTML="";
     records.forEach((t,i)=>{
         let ao5="—";
-        if(records.length >= i+5){
-            ao5 = (
-                records.slice(i,i+5).reduce((a,b)=>a+b,0)/5
-            ).toFixed(3);
+        if(records.length>=i+5){
+            ao5=(records.slice(i,i+5).reduce((a,b)=>a+b,0)/5).toFixed(3);
         }
         const li=document.createElement("li");
         li.textContent=`${t.toFixed(3)} | ${ao5}`;
@@ -249,55 +188,46 @@ function drawRecords(){
     });
 }
 
-/* ===== 스크램블 ===== */
 function generateScramble(){
     const t=cubeType.value;
-    const r=a=>a[Math.floor(Math.random()*a.length)];
+    const rand=a=>a[Math.floor(Math.random()*a.length)];
+    const suf=["","'","2"];
     let s=[];
+    const push=m=>s.push(m+rand(suf));
 
-    if(t==="222"){
-        const m=["R","U","F"];
-        for(let i=0;i<9;i++) s.push(r(m));
-    }
+    if(t==="222"){["R","U","F"].forEach(()=>push(rand(["R","U","F"])));}
     else if(t==="333"||t==="oh"||t==="blind"){
-        const m=["R","L","U","D","F","B"];
-        for(let i=0;i<20;i++) s.push(r(m));
+        for(let i=0;i<20;i++) push(rand(["R","L","U","D","F","B"]));
     }
     else if(t==="444"||t==="555"){
-        const m=["R","L","U","D","F","B","Rw","Uw"];
-        for(let i=0;i<40;i++) s.push(r(m));
+        for(let i=0;i<40;i++) push(rand(["R","L","U","D","F","B","Rw","Uw"]));
     }
     else if(t==="skewb"){
-        const m=["R","L","B"];
-        for(let i=0;i<11;i++) s.push(r(m));
+        for(let i=0;i<11;i++) push(rand(["R","L","B"]));
     }
     else if(t==="pyraminx"){
-        const m=["R","L","U","B"];
-        for(let i=0;i<11;i++) s.push(r(m));
+        for(let i=0;i<11;i++) push(rand(["R","L","U","B"]));
     }
     else if(t==="megaminx"){
-        const m=["R++","R--","D++","D--"];
-        for(let i=0;i<70;i++) s.push(r(m));
+        for(let i=0;i<70;i++) s.push(rand(["R++","R--","D++","D--"]));
     }
     else if(t==="clock"){
-        const d=["UR","DR","DL","UL"];
-        d.forEach(x=>{
-            s.push(x+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
+        ["UR","DR","DL","UL"].forEach(d=>{
+            s.push(d+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
         });
-        d.forEach(x=>{
-            s.push(x+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
+        ["UR","DR","DL","UL"].forEach(d=>{
+            s.push(d+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
         });
-        s.push(r(["y2","x2",""]));
+        const rot=rand(["","y2","x2"]);
+        if(rot) s.push(rot);
     }
-
     scrambleDiv.textContent=s.join(" ");
 }
 
-/* ===== 타이머 ===== */
 function startTimer(){
-    startTime=Date.now();
+    start=Date.now();
     interval=setInterval(()=>{
-        timer.textContent=((Date.now()-startTime)/1000).toFixed(3);
+        timer.textContent=((Date.now()-start)/1000).toFixed(3);
     },10);
     running=true;
 }
@@ -310,29 +240,27 @@ function stopTimer(){
     generateScramble();
 }
 
-/* ===== 키보드 ===== */
 window.addEventListener("keydown",e=>{
-    if(e.code==="Space" && !memo.matches(":focus")){
+    if(e.code==="Space"&&!memo.matches(":focus")){
         e.preventDefault();
-        if(!running && !holding){
+        if(!running&&!holding){
             holding=true;
             timer.classList.add("ready");
         }
     }
 });
 window.addEventListener("keyup",e=>{
-    if(e.code==="Space" && !memo.matches(":focus")){
-        if(holding && !running){
+    if(e.code==="Space"&&!memo.matches(":focus")){
+        if(holding&&!running){
             holding=false;
             timer.classList.remove("ready");
             startTimer();
-        } else if(running){
+        }else if(running){
             stopTimer();
         }
     }
 });
 
-/* 시작 */
 generateScramble();
 drawRecords();
 
