@@ -46,6 +46,7 @@ h1 {
     font-size: 80px;
     user-select: none;
     touch-action: manipulation;
+    cursor: pointer; /* 모바일에서 눌러야 한다는 느낌 */
 }
 
 .ready {
@@ -137,7 +138,7 @@ button {
 <div id="center">
     <div id="timer">0.000</div>
     <div style="opacity:0.6;margin-top:10px;">
-        Space / Touch 길게 → 시작 · 다시 → 정지
+        Space / 터치 숫자 → 시작 · 다시 → 정지
     </div>
 </div>
 
@@ -229,16 +230,16 @@ document.addEventListener("keyup", e => {
     }
 });
 
-/* 모바일 터치 이벤트 */
-document.addEventListener("touchstart", e => {
-    e.preventDefault();
+/* 모바일 터치 이벤트 (숫자 영역만) */
+timer.addEventListener("touchstart", e => {
+    e.preventDefault(); // 스크롤 방지
     if (!running && !holding) {
         holding = true;
         timer.classList.add("ready");
     }
 });
 
-document.addEventListener("touchend", e => {
+timer.addEventListener("touchend", e => {
     e.preventDefault();
     if (holding && !running) {
         holding = false;
@@ -252,8 +253,3 @@ document.addEventListener("touchend", e => {
 
 </body>
 </html>
-
-
-</body>
-</html>
-
