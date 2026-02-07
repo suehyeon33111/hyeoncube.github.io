@@ -99,7 +99,6 @@ button {
     margin-top: 6px;
     font-size: 14px;
     cursor: pointer;
-    outline: none;
 }
 
 /* 모바일 */
@@ -164,8 +163,10 @@ const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
 const memo = document.getElementById("memo");
 
-/* ⭐ Space 스크롤 완전 차단 */
+/* ===== Space 스크롤 차단 (메모장 제외) ===== */
 window.addEventListener("keydown", e => {
+    if (document.activeElement === memo) return;
+
     if (e.code === "Space") {
         e.preventDefault();
         e.stopPropagation();
@@ -254,9 +255,8 @@ function generateScramble(len = 20) {
     scrambleDiv.textContent = out.join(" ");
 }
 
-/* PC 키보드 (메모장 예외) */
+/* ===== PC 키보드 (메모장 완전 무시) ===== */
 window.addEventListener("keydown", e => {
-
     if (document.activeElement === memo) return;
 
     if (e.code === "Space" && !holding && !running) {
@@ -268,7 +268,6 @@ window.addEventListener("keydown", e => {
 });
 
 window.addEventListener("keyup", e => {
-
     if (document.activeElement === memo) return;
 
     if (e.code === "Space") {
@@ -282,7 +281,7 @@ window.addEventListener("keyup", e => {
     }
 });
 
-/* 모바일 숫자 터치 */
+/* ===== 모바일 숫자 터치만 ===== */
 timer.addEventListener("touchstart", e => {
     e.preventDefault();
     if (!holding && !running) {
