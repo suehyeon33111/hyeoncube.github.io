@@ -18,7 +18,6 @@ html, body {
     overflow: hidden;
 }
 
-/* 제목 */
 h1 {
     margin: 0;
     height: 44px;
@@ -27,22 +26,18 @@ h1 {
     font-size: 1.6em;
 }
 
-/* 전체 */
 #container {
     display: flex;
     height: calc(100vh - 44px);
 }
 
-/* 왼쪽 */
 #left {
     width: 220px;
     padding: 8px;
     border-right: 2px solid #333;
     overflow-y: auto;
-    font-size: 14px;
 }
 
-/* 중앙 */
 #center {
     flex: 1;
     display: flex;
@@ -62,63 +57,46 @@ h1 {
 #scramble {
     margin-top: 10px;
     font-size: 16px;
-    max-width: 90%;
     text-align: center;
-    word-wrap: break-word;
-    opacity: 0.85;
+    max-width: 90%;
 }
 
-#hint {
-    margin-top: 6px;
-    font-size: 12px;
-    opacity: 0.5;
-}
-
-/* 오른쪽 */
 #right {
     width: 230px;
     padding: 8px;
     border-left: 2px solid #333;
-    overflow-y: auto;
 }
 
 textarea {
     width: 100%;
-    height: calc(100% - 26px);
+    height: 120px;
     background: #1c1c1c;
     color: white;
     border: 1px solid #444;
     resize: none;
     padding: 6px;
-    font-size: 14px;
 }
 
 button {
     width: 100%;
-    padding: 6px;
     margin-top: 6px;
-    font-size: 14px;
-    cursor: pointer;
+    padding: 6px;
 }
 
-/* 모바일 */
 @media (max-width: 768px) {
     #container { flex-direction: column; }
-
     #left, #right {
         width: 100%;
-        height: 160px;
+        height: 150px;
         border: none;
         border-top: 2px solid #333;
     }
-
     #timer { font-size: 60px; }
-    textarea { height: 100px; font-size: 15px; }
 }
 </style>
 </head>
 
-<body tabindex="-1">
+<body>
 
 <h1>수현의 큐브사이트</h1>
 
@@ -128,26 +106,16 @@ button {
     <h3>기록</h3>
     <ul id="recordList"></ul>
     <button onclick="clearRecords()">기록 초기화</button>
-
-    <h3>추천 큐브</h3>
-    <ul>
-        <li>GAN 12</li>
-        <li>MoYu RS3M</li>
-        <li>QiYi MS</li>
-        <li>DaYan TengYun</li>
-        <li>YJ MGC</li>
-    </ul>
 </div>
 
 <div id="center">
     <div id="timer">0.000</div>
     <div id="scramble"></div>
-    <div id="hint">Space / 숫자 터치 → 시작 · 다시 → 정지</div>
 </div>
 
 <div id="right">
     <h3>메모장</h3>
-    <textarea id="memo" placeholder="연습 메모, 목표 기록"></textarea>
+    <textarea id="memo" placeholder="여기에 메모 작성"></textarea>
 </div>
 
 </div>
@@ -157,65 +125,35 @@ let startTime = 0;
 let interval = null;
 let running = false;
 let holding = false;
+let timerEnabled = true; // ⭐ 핵심
 
 const timer = document.getElementById("timer");
+const memo = document.getElementById("memo");
 const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
-const memo = document.getElementById("memo");
 
-/* ===== Space 스크롤 차단 (메모장 제외) ===== */
+/* ===== 메모장 포커스 제어 ===== */
+memo.addEventListener("focus", () => {
+    timerEnabled = false;
+    stopTimer(); // ⭐ 즉시 멈춤
+    timer.classList.remove("ready");
+});
+
+document.addEventListener("click", e => {
+    if (!memo.contains(e.target)) {
+        timerEnabled = true;
+    }
+});
+
+/* Space 스크롤 방지 (타이머 켜졌을 때만) */
 window.addEventListener("keydown", e => {
-    if (document.activeElement === memo) return;
-
+    if (!timerEnabled) return;
     if (e.code === "Space") {
         e.preventDefault();
-        e.stopPropagation();
     }
 }, true);
 
-/* 메모 저장 */
-memo.value = localStorage.getItem("memo") || "";
-memo.addEventListener("input", () => {
-    localStorage.setItem("memo", memo.value);
-});
-
-/* 기록 */
-function loadRecords() {
-    const records = JSON.parse(localStorage.getItem("records") || "[]");
-    recordList.innerHTML = "";
-    records.forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r;
-        recordList.appendChild(li);
-    });
-}
-
-function saveRecord(time) {
-    const now = new Date();
-    const text =
-        now.getFullYear() + "-" +
-        String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") +
-        " / " +
-        String(now.getHours()).padStart(2,"0") + ":" +
-        String(now.getMinutes()).padStart(2,"0") +
-        " : " + time + "s";
-
-    const li = document.createElement("li");
-    li.textContent = text;
-    recordList.prepend(li);
-
-    const records = JSON.parse(localStorage.getItem("records") || "[]");
-    records.unshift(text);
-    localStorage.setItem("records", JSON.stringify(records));
-}
-
-function clearRecords() {
-    recordList.innerHTML = "";
-    localStorage.removeItem("records");
-}
-
-/* 타이머 */
+/* 타이머 로직 */
 function startTimer() {
     startTime = Date.now();
     interval = setInterval(() => {
@@ -225,50 +163,42 @@ function startTimer() {
 }
 
 function stopTimer() {
+    if (!running) return;
     clearInterval(interval);
     running = false;
-    saveRecord(timer.textContent);
-    generateScramble();
 }
 
-function resetTimer() {
-    clearInterval(interval);
-    running = false;
-    holding = false;
-    timer.textContent = "0.000";
-    timer.classList.remove("ready");
-    generateScramble();
+function saveRecord(time) {
+    const li = document.createElement("li");
+    li.textContent = time + "s";
+    recordList.prepend(li);
 }
 
-/* 스크램블 */
-function generateScramble(len = 20) {
+function generateScramble() {
     const moves = ["R","L","U","D","F","B"];
     const suf = ["","'","2"];
-    let last = "", out = [];
-    for (let i=0;i<len;i++){
-        let m;
-        do { m = moves[Math.floor(Math.random()*moves.length)]; }
-        while (m === last);
-        last = m;
-        out.push(m + suf[Math.floor(Math.random()*suf.length)]);
+    let s = [];
+    for (let i=0;i<20;i++){
+        s.push(
+            moves[Math.floor(Math.random()*6)] +
+            suf[Math.floor(Math.random()*3)]
+        );
     }
-    scrambleDiv.textContent = out.join(" ");
+    scrambleDiv.textContent = s.join(" ");
 }
 
-/* ===== PC 키보드 (메모장 완전 무시) ===== */
+/* PC 키보드 */
 window.addEventListener("keydown", e => {
-    if (document.activeElement === memo) return;
+    if (!timerEnabled) return;
 
     if (e.code === "Space" && !holding && !running) {
         holding = true;
         timer.classList.add("ready");
     }
-
-    if (e.key.toLowerCase() === "m") resetTimer();
 });
 
 window.addEventListener("keyup", e => {
-    if (document.activeElement === memo) return;
+    if (!timerEnabled) return;
 
     if (e.code === "Space") {
         if (holding && !running) {
@@ -277,32 +207,33 @@ window.addEventListener("keyup", e => {
             startTimer();
         } else if (running) {
             stopTimer();
+            saveRecord(timer.textContent);
+            generateScramble();
         }
     }
 });
 
-/* ===== 모바일 숫자 터치만 ===== */
+/* 모바일 */
 timer.addEventListener("touchstart", e => {
-    e.preventDefault();
-    if (!holding && !running) {
-        holding = true;
-        timer.classList.add("ready");
-    }
-}, { passive: false });
+    if (!timerEnabled) return;
+    holding = true;
+    timer.classList.add("ready");
+}, { passive:false });
 
 timer.addEventListener("touchend", e => {
-    e.preventDefault();
+    if (!timerEnabled) return;
+
     if (holding && !running) {
         holding = false;
         timer.classList.remove("ready");
         startTimer();
     } else if (running) {
         stopTimer();
+        saveRecord(timer.textContent);
+        generateScramble();
     }
-}, { passive: false });
+}, { passive:false });
 
-/* 시작 */
-loadRecords();
 generateScramble();
 </script>
 
