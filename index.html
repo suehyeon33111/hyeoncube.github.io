@@ -8,12 +8,10 @@
 <style>
 * { box-sizing: border-box; }
 
-html, body {
+body {
     margin: 0;
-    padding: 0;
-    height: 100%;
     background: #111;
-    color: #fff;
+    color: white;
     font-family: Arial, sans-serif;
     overflow: hidden;
 }
@@ -36,26 +34,21 @@ h1 {
 
 /* 왼쪽 */
 #left {
-    width: 240px;
-    padding: 8px;
+    width: 260px;
+    padding: 10px;
     border-right: 2px solid #333;
     overflow-y: auto;
     font-size: 14px;
 }
 
 .section {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .section h3 {
     margin: 6px 0;
-    font-size: 15px;
     border-bottom: 1px solid #333;
     padding-bottom: 4px;
-}
-
-#recordList {
-    padding-left: 18px;
 }
 
 /* 중앙 */
@@ -73,35 +66,34 @@ h1 {
     cursor: pointer;
 }
 
-.ready {
-    color: red;
-}
+.ready { color: red; }
 
 #scramble {
     margin-top: 10px;
     font-size: 16px;
-    text-align: center;
     max-width: 90%;
+    text-align: center;
     opacity: 0.85;
 }
 
 /* 오른쪽 */
 #right {
-    width: 240px;
-    padding: 8px;
+    width: 260px;
+    padding: 10px;
     border-left: 2px solid #333;
 }
 
 textarea {
     width: 100%;
-    height: 130px;
+    height: 120px;
     background: #1c1c1c;
     color: white;
     border: 1px solid #444;
-    resize: none;
     padding: 6px;
+    resize: none;
 }
 
+/* 버튼 */
 button {
     width: 100%;
     margin-top: 6px;
@@ -111,20 +103,14 @@ button {
 
 /* 모바일 */
 @media (max-width: 768px) {
-    #container {
-        flex-direction: column;
-    }
-
+    #container { flex-direction: column; }
     #left, #right {
         width: 100%;
-        height: 180px;
+        height: 200px;
         border: none;
         border-top: 2px solid #333;
     }
-
-    #timer {
-        font-size: 60px;
-    }
+    #timer { font-size: 60px; }
 }
 </style>
 </head>
@@ -142,6 +128,11 @@ button {
         <h3>기록</h3>
         <ul id="recordList"></ul>
         <button onclick="clearRecords()">기록 초기화</button>
+    </div>
+
+    <div class="section">
+        <h3>평균 기록 (AO5)</h3>
+        <div id="average">기록 부족</div>
     </div>
 
     <div class="section">
@@ -182,8 +173,14 @@ const timer = document.getElementById("timer");
 const memo = document.getElementById("memo");
 const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
+const averageDiv = document.getElementById("average");
 
-/* 메모장 포커스 시 타이머 비활성 */
+/* 메모장 */
+memo.value = localStorage.getItem("memo") || "";
+memo.addEventListener("input", () => {
+    localStorage.setItem("memo", memo.value);
+});
+
 memo.addEventListener("focus", () => {
     timerEnabled = false;
     stopTimer();
@@ -191,16 +188,55 @@ memo.addEventListener("focus", () => {
 });
 
 document.addEventListener("mousedown", e => {
-    if (!memo.contains(e.target)) {
-        timerEnabled = true;
-    }
+    if (!memo.contains(e.target)) timerEnabled = true;
 });
+
+/* 기록 */
+function loadRecords() {
+    const records = JSON.parse(localStorage.getItem("records") || "[]");
+    recordList.innerHTML = "";
+    records.forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r.text;
+        recordList.appendChild(li);
+    });
+    updateAverage(records);
+}
+
+function saveRecord(time) {
+    const now = new Date();
+    const text =
+        `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 / ` +
+        `${now.getHours()}시 ${now.getMinutes()}분 - ${time}s`;
+
+    const records = JSON.parse(localStorage.getItem("records") || "[]");
+    records.unshift({ text, value: parseFloat(time) });
+    localStorage.setItem("records", JSON.stringify(records));
+
+    loadRecords();
+}
+
+function clearRecords() {
+    localStorage.removeItem("records");
+    loadRecords();
+}
+
+/* 평균 */
+function updateAverage(records) {
+    if (records.length < 5) {
+        averageDiv.textContent = "기록 부족";
+        return;
+    }
+    const last5 = records.slice(0, 5).map(r => r.value);
+    const avg = (last5.reduce((a,b)=>a+b,0) / 5).toFixed(3);
+    averageDiv.textContent = avg + "s";
+}
 
 /* 타이머 */
 function startTimer() {
     startTime = Date.now();
     interval = setInterval(() => {
-        timer.textContent = ((Date.now() - startTime) / 1000).toFixed(3);
+        timer.textContent = ((Date.now() - startTime)/1000).toFixed(3);
     }, 10);
     running = true;
 }
@@ -210,27 +246,18 @@ function stopTimer() {
     running = false;
 }
 
-function saveRecord(time) {
-    const li = document.createElement("li");
-    li.textContent = time + "s";
-    recordList.prepend(li);
-}
-
 /* 스크램블 */
 function generateScramble() {
-    const moves = ["R","L","U","D","F","B"];
-    const suf = ["","'","2"];
-    let arr = [];
+    const m = ["R","L","U","D","F","B"];
+    const s = ["","'","2"];
+    let r = [];
     for (let i=0;i<20;i++) {
-        arr.push(
-            moves[Math.floor(Math.random()*6)] +
-            suf[Math.floor(Math.random()*3)]
-        );
+        r.push(m[Math.floor(Math.random()*6)] + s[Math.floor(Math.random()*3)]);
     }
-    scrambleDiv.textContent = arr.join(" ");
+    scrambleDiv.textContent = r.join(" ");
 }
 
-/* PC */
+/* 키보드 */
 window.addEventListener("keydown", e => {
     if (!timerEnabled) return;
     if (e.code === "Space" && !holding && !running) {
@@ -276,6 +303,7 @@ timer.addEventListener("touchend", () => {
 });
 
 generateScramble();
+loadRecords();
 </script>
 
 </body>
