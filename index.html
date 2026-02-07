@@ -5,9 +5,7 @@
 <title>수현의 큐브사이트</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body {
     margin: 0;
@@ -15,29 +13,30 @@ html, body {
     height: 100vh;
     font-family: Arial, sans-serif;
     background: #111;
-    color: white;
+    color: #fff;
 }
 
 /* 제목 */
 h1 {
     margin: 0;
-    padding: 8px 0;
+    padding: 6px 0;
+    height: 40px;
     text-align: center;
-    font-size: 1.6em;
-    height: 44px; /* ⭐ 고정 */
+    font-size: 1.5em;
 }
 
-/* 전체 컨테이너 */
+/* 전체 레이아웃 (100vh 정확히 맞춤) */
 #container {
     display: flex;
-    height: calc(100vh - 44px); /* ⭐ 제목 제외 */
+    height: calc(100vh - 40px);
+    overflow: hidden; /* 페이지 스크롤 원천 제거 */
 }
 
 /* 왼쪽 */
 #left {
     width: 220px;
-    border-right: 2px solid #333;
     padding: 8px;
+    border-right: 2px solid #333;
     overflow-y: auto;
     font-size: 14px;
 }
@@ -47,27 +46,25 @@ h1 {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 #timer {
-    font-size: 78px;
+    font-size: 76px;
     user-select: none;
     cursor: pointer;
 }
 
-.ready {
-    color: red;
-}
+.ready { color: red; }
 
 #scramble {
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 16px;
     max-width: 90%;
     text-align: center;
-    word-wrap: break-word;
     opacity: 0.85;
+    word-wrap: break-word;
 }
 
 #hint {
@@ -79,62 +76,55 @@ h1 {
 /* 오른쪽 */
 #right {
     width: 230px;
-    border-left: 2px solid #333;
     padding: 8px;
+    border-left: 2px solid #333;
     overflow-y: auto;
 }
 
 textarea {
     width: 100%;
-    height: calc(100% - 26px);
+    height: calc(100% - 24px);
     background: #1c1c1c;
-    color: white;
+    color: #fff;
     border: 1px solid #444;
     resize: none;
     padding: 6px;
     font-size: 14px;
 }
 
+/* 버튼 포커스 제거 (Space 영향 차단) */
 button {
     width: 100%;
     padding: 6px;
     margin-top: 6px;
     font-size: 14px;
     cursor: pointer;
+    outline: none;
 }
+button:focus { outline: none; }
 
 /* 모바일 */
 @media (max-width: 768px) {
-    #container {
-        flex-direction: column;
-    }
-
+    #container { flex-direction: column; }
     #left, #right {
         width: 100%;
         height: 160px;
         border: none;
         border-top: 2px solid #333;
     }
-
-    #timer {
-        font-size: 60px;
-    }
-
-    textarea {
-        height: 100px;
-        font-size: 15px;
-    }
+    #timer { font-size: 60px; }
+    textarea { height: 100px; font-size: 15px; }
 }
 </style>
 </head>
 
-<body>
+<!-- ⭐ body 포커스 차단 -->
+<body tabindex="-1">
 
 <h1>수현의 큐브사이트</h1>
 
 <div id="container">
 
-<!-- 왼쪽 -->
 <div id="left">
     <h3>기록</h3>
     <ul id="recordList"></ul>
@@ -150,14 +140,12 @@ button {
     </ul>
 </div>
 
-<!-- 중앙 -->
 <div id="center">
     <div id="timer">0.000</div>
     <div id="scramble"></div>
     <div id="hint">Space / 숫자 터치 → 시작 · 다시 → 정지</div>
 </div>
 
-<!-- 오른쪽 -->
 <div id="right">
     <h3>메모장</h3>
     <textarea id="memo" placeholder="연습 메모, 목표 기록"></textarea>
@@ -176,7 +164,15 @@ const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
 const memo = document.getElementById("memo");
 
-/* 메모 */
+/* ===== 스페이스바 기본 동작 완전 차단 (캡처 단계) ===== */
+window.addEventListener("keydown", e => {
+    if (e.code === "Space") {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}, true);
+
+/* 메모 저장 */
 memo.value = localStorage.getItem("memo") || "";
 memo.addEventListener("input", () => {
     localStorage.setItem("memo", memo.value);
@@ -198,11 +194,11 @@ function saveRecord(time) {
     const now = new Date();
     const date =
         now.getFullYear() + "-" +
-        String(now.getMonth() + 1).padStart(2, "0") + "-" +
-        String(now.getDate()).padStart(2, "0");
+        String(now.getMonth() + 1).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0");
     const clock =
-        String(now.getHours()).padStart(2, "0") + ":" +
-        String(now.getMinutes()).padStart(2, "0");
+        String(now.getHours()).padStart(2,"0") + ":" +
+        String(now.getMinutes()).padStart(2,"0");
     const text = `${date} / ${clock} : ${time}s`;
 
     const li = document.createElement("li");
@@ -214,7 +210,7 @@ function saveRecord(time) {
     localStorage.setItem("records", JSON.stringify(records));
 }
 
-/* 초기화 */
+/* 기록 초기화 */
 function clearRecords() {
     recordList.innerHTML = "";
     localStorage.removeItem("records");
@@ -248,35 +244,30 @@ function resetTimer() {
 /* 스크램블 */
 function generateScramble(len = 20) {
     const moves = ["R","L","U","D","F","B"];
-    const suffix = ["","'","2"];
+    const suf = ["","'","2"];
     let last = "";
-    let result = [];
-    for (let i = 0; i < len; i++) {
+    let s = [];
+    for (let i=0;i<len;i++){
         let m;
-        do {
-            m = moves[Math.floor(Math.random() * moves.length)];
-        } while (m === last);
+        do { m = moves[Math.floor(Math.random()*moves.length)]; }
+        while (m === last);
         last = m;
-        result.push(m + suffix[Math.floor(Math.random() * suffix.length)]);
+        s.push(m + suf[Math.floor(Math.random()*suf.length)]);
     }
-    scrambleDiv.textContent = result.join(" ");
+    scrambleDiv.textContent = s.join(" ");
 }
 
 /* PC 키보드 */
 window.addEventListener("keydown", e => {
-    if (e.code === "Space") {
-        e.preventDefault();
-        if (!holding && !running) {
-            holding = true;
-            timer.classList.add("ready");
-        }
+    if (e.code === "Space" && !holding && !running) {
+        holding = true;
+        timer.classList.add("ready");
     }
     if (e.key.toLowerCase() === "m") resetTimer();
 });
 
 window.addEventListener("keyup", e => {
     if (e.code === "Space") {
-        e.preventDefault();
         if (holding && !running) {
             holding = false;
             timer.classList.remove("ready");
@@ -307,7 +298,7 @@ timer.addEventListener("touchend", e => {
     }
 });
 
-/* 시작 */
+/* 초기 */
 loadRecords();
 generateScramble();
 </script>
