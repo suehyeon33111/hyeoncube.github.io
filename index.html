@@ -6,15 +6,19 @@
 <title>수현의 큐브사이트</title>
 
 <style>
-/* (CSS 동일 — 생략 안 함) */
 * { box-sizing: border-box; }
-body {
+
+html, body {
     margin: 0;
+    padding: 0;
+    height: 100%;
     background: #111;
     color: white;
     font-family: Arial, sans-serif;
     overflow: hidden;
 }
+
+/* 제목 */
 h1 {
     margin: 0;
     height: 44px;
@@ -23,10 +27,14 @@ h1 {
     font-size: 1.6em;
     border-bottom: 2px solid #333;
 }
+
+/* 전체 레이아웃 */
 #container {
     display: flex;
     height: calc(100vh - 44px);
 }
+
+/* 왼쪽 */
 #left {
     width: 260px;
     padding: 10px;
@@ -34,14 +42,39 @@ h1 {
     overflow-y: auto;
     font-size: 14px;
 }
+
+/* 왼쪽 스크롤바 (어두운 테마) */
+#left::-webkit-scrollbar {
+    width: 10px;
+}
+#left::-webkit-scrollbar-track {
+    background: #111;
+    border-left: 1px solid #333;
+}
+#left::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 6px;
+    border: 2px solid #111;
+}
+#left::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+#left {
+    scrollbar-width: thin;
+    scrollbar-color: #444 #111;
+}
+
 .section {
     margin-bottom: 16px;
 }
+
 .section h3 {
     margin: 6px 0;
     border-bottom: 1px solid #333;
     padding-bottom: 4px;
 }
+
+/* 중앙 */
 #center {
     flex: 1;
     display: flex;
@@ -49,46 +82,66 @@ h1 {
     align-items: center;
     justify-content: center;
 }
+
 #timer {
     font-size: 78px;
-    user-select: none;
     cursor: pointer;
+    user-select: none;
 }
-.ready { color: red; }
+
+.ready {
+    color: red;
+}
+
 #scramble {
     margin-top: 10px;
     font-size: 16px;
     max-width: 90%;
     text-align: center;
+    opacity: 0.85;
 }
+
+/* 오른쪽 */
 #right {
     width: 260px;
     padding: 10px;
     border-left: 2px solid #333;
 }
+
 textarea {
     width: 100%;
-    height: 120px;
+    height: 130px;
     background: #1c1c1c;
     color: white;
     border: 1px solid #444;
-    resize: none;
     padding: 6px;
+    resize: none;
 }
+
+/* 버튼 */
 button {
     width: 100%;
-    margin-top: 6px;
     padding: 6px;
+    margin-top: 6px;
+    cursor: pointer;
 }
+
+/* 모바일 */
 @media (max-width: 768px) {
-    #container { flex-direction: column; }
+    #container {
+        flex-direction: column;
+    }
+
     #left, #right {
         width: 100%;
         height: 200px;
         border: none;
         border-top: 2px solid #333;
     }
-    #timer { font-size: 60px; }
+
+    #timer {
+        font-size: 60px;
+    }
 }
 </style>
 </head>
@@ -98,39 +151,46 @@ button {
 <h1>수현의 큐브사이트</h1>
 
 <div id="container">
-    <div id="left">
-        <div class="section">
-            <h3>기록</h3>
-            <ul id="recordList"></ul>
-            <button id="clearBtn">기록 초기화</button>
-        </div>
 
-        <div class="section">
-            <h3>평균 기록 (AO5)</h3>
-            <div id="average">기록 부족</div>
-        </div>
+<!-- 왼쪽 -->
+<div id="left">
 
-        <div class="section">
-            <h3>추천 큐브</h3>
-            <ul>
-                <li>GAN 12</li>
-                <li>MoYu RS3M</li>
-                <li>QiYi MS</li>
-                <li>DaYan TengYun</li>
-                <li>YJ MGC</li>
-            </ul>
-        </div>
+    <div class="section">
+        <h3>기록</h3>
+        <ul id="recordList"></ul>
+        <button id="clearBtn">기록 초기화</button>
     </div>
 
-    <div id="center">
-        <div id="timer">0.000</div>
-        <div id="scramble"></div>
+    <div class="section">
+        <h3>평균 기록 (AO5)</h3>
+        <div id="average">기록 부족</div>
     </div>
 
-    <div id="right">
-        <h3>메모장</h3>
-        <textarea id="memo"></textarea>
+    <div class="section">
+        <h3>추천 큐브</h3>
+        <ul>
+            <li>GAN 12</li>
+            <li>MoYu RS3M</li>
+            <li>QiYi MS</li>
+            <li>DaYan TengYun</li>
+            <li>YJ MGC</li>
+        </ul>
     </div>
+
+</div>
+
+<!-- 중앙 -->
+<div id="center">
+    <div id="timer">0.000</div>
+    <div id="scramble"></div>
+</div>
+
+<!-- 오른쪽 -->
+<div id="right">
+    <h3>메모장</h3>
+    <textarea id="memo" placeholder="연습 메모"></textarea>
+</div>
+
 </div>
 
 <script>
@@ -207,10 +267,11 @@ clearBtn.onclick = () => {
 function startTimer() {
     startTime = Date.now();
     interval = setInterval(() => {
-        timer.textContent = ((Date.now()-startTime)/1000).toFixed(3);
+        timer.textContent = ((Date.now() - startTime) / 1000).toFixed(3);
     }, 10);
     running = true;
 }
+
 function stopTimer() {
     clearInterval(interval);
     running = false;
@@ -218,9 +279,10 @@ function stopTimer() {
 
 /* 스크램블 */
 function generateScramble() {
-    const m=["R","L","U","D","F","B"], s=["","'","2"];
-    let r=[];
-    for(let i=0;i<20;i++){
+    const m = ["R","L","U","D","F","B"];
+    const s = ["","'","2"];
+    let r = [];
+    for (let i = 0; i < 20; i++) {
         r.push(m[Math.floor(Math.random()*6)] + s[Math.floor(Math.random()*3)]);
     }
     scrambleDiv.textContent = r.join(" ");
@@ -229,17 +291,18 @@ function generateScramble() {
 /* 키보드 */
 window.addEventListener("keydown", e => {
     if (!timerEnabled) return;
-    if (e.code==="Space" && !holding && !running) {
+    if (e.code === "Space" && !holding && !running) {
         e.preventDefault();
-        holding=true;
+        holding = true;
         timer.classList.add("ready");
     }
 });
+
 window.addEventListener("keyup", e => {
     if (!timerEnabled) return;
-    if (e.code==="Space") {
+    if (e.code === "Space") {
         if (holding && !running) {
-            holding=false;
+            holding = false;
             timer.classList.remove("ready");
             startTimer();
         } else if (running) {
@@ -251,15 +314,16 @@ window.addEventListener("keyup", e => {
 });
 
 /* 모바일 */
-timer.addEventListener("touchstart", ()=> {
+timer.addEventListener("touchstart", () => {
     if (!timerEnabled) return;
-    holding=true;
+    holding = true;
     timer.classList.add("ready");
 });
-timer.addEventListener("touchend", ()=> {
+
+timer.addEventListener("touchend", () => {
     if (!timerEnabled) return;
     if (holding && !running) {
-        holding=false;
+        holding = false;
         timer.classList.remove("ready");
         startTimer();
     } else if (running) {
