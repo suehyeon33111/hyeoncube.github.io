@@ -38,8 +38,6 @@ header h1{margin:0;font-size:1.5em}
     overflow-y:auto;
     font-family:monospace;
 }
-#left::-webkit-scrollbar{width:8px}
-#left::-webkit-scrollbar-thumb{background:#444}
 #center{
     flex:1;
     display:flex;
@@ -99,8 +97,8 @@ textarea{
 <body>
 
 <header>
-    <h1>수현의 큐브사이트</h1>
-    <button id="settingsBtn">⚙</button>
+<h1>수현의 큐브사이트</h1>
+<button id="settingsBtn">⚙</button>
 </header>
 
 <div id="container">
@@ -151,30 +149,34 @@ textarea{
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
+/* ===== DOM ===== */
+const timer = document.getElementById("timer");
+const scrambleDiv = document.getElementById("scramble");
+const recordList = document.getElementById("recordList");
+const memo = document.getElementById("memo");
+const cubeType = document.getElementById("cubeType");
+const modal = document.getElementById("settingsModal");
 
-const timer=document.getElementById("timer");
-const scrambleDiv=document.getElementById("scramble");
-const recordList=document.getElementById("recordList");
-const memo=document.getElementById("memo");
-const cubeType=document.getElementById("cubeType");
-const modal=document.getElementById("settingsModal");
+/* ===== 상태 ===== */
+let running=false, holding=false;
+let start=0, interval=null;
+let records = JSON.parse(localStorage.getItem("records") || "[]");
 
-let running=false,holding=false,start=0,interval=null;
-let records=JSON.parse(localStorage.getItem("records")||"[]");
-
+/* ===== 설정 ===== */
 document.getElementById("settingsBtn").onclick=()=>modal.style.display="flex";
-window.closeSettings=()=>modal.style.display="none";
+function closeSettings(){ modal.style.display="none"; }
 
-cubeType.value=localStorage.getItem("cubeType")||"333";
-cubeType.onchange=()=>{
-    localStorage.setItem("cubeType",cubeType.value);
+cubeType.value = localStorage.getItem("cubeType") || "333";
+cubeType.onchange = ()=>{
+    localStorage.setItem("cubeType", cubeType.value);
     generateScramble();
 };
 
-memo.value=localStorage.getItem("memo")||"";
-memo.oninput=()=>localStorage.setItem("memo",memo.value);
+/* ===== 메모 ===== */
+memo.value = localStorage.getItem("memo") || "";
+memo.oninput = ()=> localStorage.setItem("memo", memo.value);
 
+/* ===== 기록 ===== */
 function drawRecords(){
     recordList.innerHTML="";
     records.forEach((t,i)=>{
@@ -188,29 +190,25 @@ function drawRecords(){
     });
 }
 
+/* ===== 스크램블 ===== */
 function generateScramble(){
     const t=cubeType.value;
-    const rand=a=>a[Math.floor(Math.random()*a.length)];
+    const r=a=>a[Math.floor(Math.random()*a.length)];
     const suf=["","'","2"];
     let s=[];
-    const push=m=>s.push(m+rand(suf));
+    const push=m=>s.push(m+r(suf));
 
-    if(t==="222"){["R","U","F"].forEach(()=>push(rand(["R","U","F"])));}
-    else if(t==="333"||t==="oh"||t==="blind"){
-        for(let i=0;i<20;i++) push(rand(["R","L","U","D","F","B"]));
-    }
-    else if(t==="444"||t==="555"){
-        for(let i=0;i<40;i++) push(rand(["R","L","U","D","F","B","Rw","Uw"]));
-    }
-    else if(t==="skewb"){
-        for(let i=0;i<11;i++) push(rand(["R","L","B"]));
-    }
-    else if(t==="pyraminx"){
-        for(let i=0;i<11;i++) push(rand(["R","L","U","B"]));
-    }
-    else if(t==="megaminx"){
-        for(let i=0;i<70;i++) s.push(rand(["R++","R--","D++","D--"]));
-    }
+    if(t==="222") for(let i=0;i<9;i++) push(r(["R","U","F"]));
+    else if(t==="333"||t==="oh"||t==="blind")
+        for(let i=0;i<20;i++) push(r(["R","L","U","D","F","B"]));
+    else if(t==="444"||t==="555")
+        for(let i=0;i<40;i++) push(r(["R","L","U","D","F","B","Rw","Uw"]));
+    else if(t==="skewb")
+        for(let i=0;i<11;i++) push(r(["R","L","B"]));
+    else if(t==="pyraminx")
+        for(let i=0;i<11;i++) push(r(["R","L","U","B"]));
+    else if(t==="megaminx")
+        for(let i=0;i<70;i++) s.push(r(["R++","R--","D++","D--"]));
     else if(t==="clock"){
         ["UR","DR","DL","UL"].forEach(d=>{
             s.push(d+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
@@ -218,12 +216,13 @@ function generateScramble(){
         ["UR","DR","DL","UL"].forEach(d=>{
             s.push(d+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
         });
-        const rot=rand(["","y2","x2"]);
+        const rot=r(["","y2","x2"]);
         if(rot) s.push(rot);
     }
     scrambleDiv.textContent=s.join(" ");
 }
 
+/* ===== 타이머 ===== */
 function startTimer(){
     start=Date.now();
     interval=setInterval(()=>{
@@ -240,7 +239,8 @@ function stopTimer(){
     generateScramble();
 }
 
-window.addEventListener("keydown",e=>{
+/* ===== 키 ===== */
+window.onkeydown=e=>{
     if(e.code==="Space"&&!memo.matches(":focus")){
         e.preventDefault();
         if(!running&&!holding){
@@ -248,8 +248,8 @@ window.addEventListener("keydown",e=>{
             timer.classList.add("ready");
         }
     }
-});
-window.addEventListener("keyup",e=>{
+};
+window.onkeyup=e=>{
     if(e.code==="Space"&&!memo.matches(":focus")){
         if(holding&&!running){
             holding=false;
@@ -259,12 +259,11 @@ window.addEventListener("keyup",e=>{
             stopTimer();
         }
     }
-});
+};
 
+/* ===== 시작 ===== */
 generateScramble();
 drawRecords();
-
-});
 </script>
 
 </body>
