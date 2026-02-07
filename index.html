@@ -10,7 +10,6 @@
 
 html, body {
     margin: 0;
-    padding: 0;
     height: 100%;
     background: #111;
     color: white;
@@ -23,19 +22,17 @@ header {
     height: 44px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 0 12px;
     border-bottom: 2px solid #333;
-    position: relative;
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.6em;
+    font-size: 1.5em;
 }
 
 #settingsBtn {
-    position: absolute;
-    right: 12px;
+    margin-left: auto;
     background: none;
     border: none;
     color: white;
@@ -51,40 +48,46 @@ header h1 {
 
 /* 왼쪽 */
 #left {
-    width: 260px;
+    width: 280px;
     padding: 10px;
     border-right: 2px solid #333;
     overflow-y: auto;
-    font-size: 14px;
+    font-family: monospace;
 }
 
-#left::-webkit-scrollbar { width: 10px; }
-#left::-webkit-scrollbar-thumb { background: #444; border-radius: 6px; }
-#left::-webkit-scrollbar-track { background: #111; }
+/* 스크롤 색 */
+#left::-webkit-scrollbar {
+    width: 8px;
+}
+#left::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+#left::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
 
 /* 중앙 */
 #center {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
 #timer {
     font-size: 78px;
-    user-select: none;
     cursor: pointer;
+    user-select: none;
 }
-
 .ready { color: red; }
 
 #scramble {
     margin-top: 12px;
-    max-width: 90%;
     text-align: center;
-    font-size: 16px;
-    opacity: 0.9;
+    max-width: 90%;
+    opacity: 0.85;
 }
 
 /* 오른쪽 */
@@ -101,55 +104,33 @@ textarea {
     color: white;
     border: 1px solid #444;
     resize: none;
-    padding: 6px;
 }
 
-/* ===== 기록 ===== */
+/* 기록 */
 #recordList {
     list-style: none;
     padding: 0;
-    font-family: monospace;
+    margin: 6px 0;
 }
 
-button {
-    width: 100%;
-    padding: 6px;
-    margin-top: 6px;
-    cursor: pointer;
-}
-
-/* ===== 설정 모달 ===== */
+/* 설정 모달 */
 #settingsModal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
     display: none;
-    align-items: center;
+    background: rgba(0,0,0,.6);
     justify-content: center;
+    align-items: center;
 }
-
 #settingsBox {
     background: #1c1c1c;
-    padding: 16px;
+    padding: 14px;
     border: 2px solid #333;
     width: 260px;
 }
 
-#settingsBox h3 {
-    margin-top: 0;
-}
-
-select {
-    width: 100%;
-    padding: 6px;
-    margin-top: 6px;
-    background: #111;
-    color: white;
-    border: 1px solid #444;
-}
-
 /* 모바일 */
-@media (max-width: 768px) {
+@media (max-width:768px){
     #container { flex-direction: column; }
     #left, #right {
         width: 100%;
@@ -171,194 +152,189 @@ select {
 
 <div id="container">
 
+<!-- 왼쪽 -->
 <div id="left">
-    <h3>기록</h3>
+    <b>time | AO5</b>
     <ul id="recordList"></ul>
-    <button id="clearBtn">기록 초기화</button>
+
+    <hr>
+    <b>추천 큐브</b>
+    <ul>
+        <li>GAN 12</li>
+        <li>MoYu RS3M</li>
+        <li>QiYi MS</li>
+        <li>DaYan TengYun</li>
+        <li>YJ MGC</li>
+    </ul>
 </div>
 
+<!-- 중앙 -->
 <div id="center">
     <div id="timer">0.000</div>
     <div id="scramble"></div>
 </div>
 
+<!-- 오른쪽 -->
 <div id="right">
-    <h3>메모장</h3>
-    <textarea id="memo"></textarea>
+    <b>메모장</b>
+    <textarea id="memo" placeholder="연습 메모 / 목표 기록"></textarea>
 </div>
 
 </div>
 
-<!-- 설정 모달 -->
+<!-- 설정 -->
 <div id="settingsModal">
     <div id="settingsBox">
-        <h3>큐브 설정</h3>
+        <b>종목 설정</b><br><br>
         <select id="cubeType">
-            <option value="333">3×3</option>
             <option value="222">2×2</option>
+            <option value="333">3×3</option>
             <option value="444">4×4</option>
             <option value="555">5×5</option>
-            <option value="666">6×6</option>
-            <option value="777">7×7</option>
             <option value="skewb">스큐브</option>
             <option value="pyraminx">피라밍크스</option>
             <option value="megaminx">메가밍크스</option>
+            <option value="clock">클락 (Clock)</option>
             <option value="blind">블라인드</option>
             <option value="oh">한손</option>
         </select>
+        <br><br>
         <button onclick="closeSettings()">닫기</button>
     </div>
 </div>
 
-<script defer>
-document.addEventListener("DOMContentLoaded", () => {
-
-let startTime = 0;
-let interval = null;
-let running = false;
-let holding = false;
-let timerEnabled = true;
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
 
 const timer = document.getElementById("timer");
 const scrambleDiv = document.getElementById("scramble");
 const recordList = document.getElementById("recordList");
 const memo = document.getElementById("memo");
+const cubeType = document.getElementById("cubeType");
+const modal = document.getElementById("settingsModal");
 
-const settingsModal = document.getElementById("settingsModal");
-const cubeTypeSelect = document.getElementById("cubeType");
+let running=false, holding=false;
+let startTime=0, interval=null;
+let records = JSON.parse(localStorage.getItem("records")||"[]");
 
-/* 설정 */
-document.getElementById("settingsBtn").onclick = () => {
-    settingsModal.style.display = "flex";
-};
-window.closeSettings = () => {
-    settingsModal.style.display = "none";
-};
+/* ===== 설정 ===== */
+document.getElementById("settingsBtn").onclick=()=>modal.style.display="flex";
+window.closeSettings=()=>modal.style.display="none";
 
-/* 큐브 타입 저장 */
-cubeTypeSelect.value = localStorage.getItem("cubeType") || "333";
-cubeTypeSelect.onchange = () => {
-    localStorage.setItem("cubeType", cubeTypeSelect.value);
+cubeType.value = localStorage.getItem("cubeType") || "333";
+cubeType.onchange=()=>{
+    localStorage.setItem("cubeType", cubeType.value);
     generateScramble();
 };
 
-/* ===== 스크램블 생성 ===== */
-function generateScramble() {
-    const type = cubeTypeSelect.value;
+/* ===== 메모 ===== */
+memo.value = localStorage.getItem("memo") || "";
+memo.addEventListener("input",()=>{
+    localStorage.setItem("memo", memo.value);
+});
 
-    const basic = (len, wide=false) => {
-        const m = ["R","L","U","D","F","B"];
-        const s = ["","'","2"];
-        let r=[], last="";
-        for(let i=0;i<len;i++){
-            let mv;
-            do {
-                mv = m[Math.floor(Math.random()*6)];
-                if (wide && Math.random() < 0.4) mv += "w";
-            } while(mv===last);
-            last=mv;
-            r.push(mv + s[Math.floor(Math.random()*3)]);
-        }
-        return r.join(" ");
-    };
-
-    let scr = "";
-
-    switch(type){
-        case "222": scr = basic(9); break;
-        case "333": scr = basic(20); break;
-        case "444": scr = basic(40,true); break;
-        case "555": scr = basic(60,true); break;
-        case "666": scr = basic(80,true); break;
-        case "777": scr = basic(100,true); break;
-        case "skewb": scr = basic(11); break;
-        case "pyraminx": scr = basic(11); break;
-        case "megaminx": scr = basic(70); break;
-        case "blind": scr = basic(20); break;
-        case "oh": scr = basic(20); break;
-    }
-
-    scrambleDiv.textContent = scr;
-}
-
-/* ===== 타이머 ===== */
-function startTimer() {
-    startTime = Date.now();
-    interval = setInterval(() => {
-        timer.textContent = ((Date.now()-startTime)/1000).toFixed(3);
-    },10);
-    running = true;
-}
-function stopTimer() {
-    clearInterval(interval);
-    running = false;
-}
-
-/* 기록 */
-function saveRecord(t){
-    const records = JSON.parse(localStorage.getItem("records")||"[]");
-    records.unshift({time:parseFloat(t)});
-    localStorage.setItem("records",JSON.stringify(records));
-    loadRecords();
-}
-function loadRecords(){
-    const records = JSON.parse(localStorage.getItem("records")||"[]");
+/* ===== AO5 표시 ===== */
+function drawRecords(){
     recordList.innerHTML="";
-    records.forEach(r=>{
+    records.forEach((t,i)=>{
+        let ao5="—";
+        if(records.length >= i+5){
+            ao5 = (
+                records.slice(i,i+5).reduce((a,b)=>a+b,0)/5
+            ).toFixed(3);
+        }
         const li=document.createElement("li");
-        li.textContent=r.time.toFixed(3);
+        li.textContent=`${t.toFixed(3)} | ${ao5}`;
         recordList.appendChild(li);
     });
 }
-document.getElementById("clearBtn").onclick=()=>{
-    localStorage.removeItem("records");
-    loadRecords();
-};
 
-/* 키보드 */
-window.addEventListener("keydown",e=>{
-    if(!timerEnabled)return;
-    if(e.code==="Space"&&!holding&&!running){
-        e.preventDefault();
-        holding=true;
-        timer.classList.add("ready");
+/* ===== 스크램블 ===== */
+function generateScramble(){
+    const t=cubeType.value;
+    const r=a=>a[Math.floor(Math.random()*a.length)];
+    let s=[];
+
+    if(t==="222"){
+        const m=["R","U","F"];
+        for(let i=0;i<9;i++) s.push(r(m));
     }
-});
-window.addEventListener("keyup",e=>{
-    if(!timerEnabled)return;
-    if(e.code==="Space"){
-        if(holding&&!running){
-            holding=false;
-            timer.classList.remove("ready");
-            startTimer();
-        }else if(running){
-            stopTimer();
-            saveRecord(timer.textContent);
-            generateScramble();
+    else if(t==="333"||t==="oh"||t==="blind"){
+        const m=["R","L","U","D","F","B"];
+        for(let i=0;i<20;i++) s.push(r(m));
+    }
+    else if(t==="444"||t==="555"){
+        const m=["R","L","U","D","F","B","Rw","Uw"];
+        for(let i=0;i<40;i++) s.push(r(m));
+    }
+    else if(t==="skewb"){
+        const m=["R","L","B"];
+        for(let i=0;i<11;i++) s.push(r(m));
+    }
+    else if(t==="pyraminx"){
+        const m=["R","L","U","B"];
+        for(let i=0;i<11;i++) s.push(r(m));
+    }
+    else if(t==="megaminx"){
+        const m=["R++","R--","D++","D--"];
+        for(let i=0;i<70;i++) s.push(r(m));
+    }
+    else if(t==="clock"){
+        const d=["UR","DR","DL","UL"];
+        d.forEach(x=>{
+            s.push(x+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
+        });
+        d.forEach(x=>{
+            s.push(x+Math.floor(Math.random()*6)+(Math.random()<0.5?"+":"-"));
+        });
+        s.push(r(["y2","x2",""]));
+    }
+
+    scrambleDiv.textContent=s.join(" ");
+}
+
+/* ===== 타이머 ===== */
+function startTimer(){
+    startTime=Date.now();
+    interval=setInterval(()=>{
+        timer.textContent=((Date.now()-startTime)/1000).toFixed(3);
+    },10);
+    running=true;
+}
+function stopTimer(){
+    clearInterval(interval);
+    running=false;
+    records.unshift(parseFloat(timer.textContent));
+    localStorage.setItem("records",JSON.stringify(records));
+    drawRecords();
+    generateScramble();
+}
+
+/* ===== 키보드 ===== */
+window.addEventListener("keydown",e=>{
+    if(e.code==="Space" && !memo.matches(":focus")){
+        e.preventDefault();
+        if(!running && !holding){
+            holding=true;
+            timer.classList.add("ready");
         }
     }
 });
-
-/* 모바일 */
-timer.addEventListener("touchstart",()=>{
-    holding=true;
-    timer.classList.add("ready");
-});
-timer.addEventListener("touchend",()=>{
-    if(holding&&!running){
-        holding=false;
-        timer.classList.remove("ready");
-        startTimer();
-    }else if(running){
-        stopTimer();
-        saveRecord(timer.textContent);
-        generateScramble();
+window.addEventListener("keyup",e=>{
+    if(e.code==="Space" && !memo.matches(":focus")){
+        if(holding && !running){
+            holding=false;
+            timer.classList.remove("ready");
+            startTimer();
+        } else if(running){
+            stopTimer();
+        }
     }
 });
 
 /* 시작 */
 generateScramble();
-loadRecords();
+drawRecords();
 
 });
 </script>
