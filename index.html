@@ -15,7 +15,7 @@ html, body {
     background: #111;
     color: white;
     font-family: Arial, sans-serif;
-    overflow: hidden; /* ⭐ 전체 스크롤 완전 차단 */
+    overflow: hidden;
 }
 
 /* 제목 */
@@ -28,7 +28,7 @@ h1 {
     border-bottom: 2px solid #333;
 }
 
-/* 전체 레이아웃 */
+/* 레이아웃 */
 #container {
     display: flex;
     height: calc(100vh - 44px);
@@ -43,31 +43,17 @@ h1 {
     font-size: 14px;
 }
 
-/* 왼쪽 스크롤바 (어두운 테마) */
-#left::-webkit-scrollbar {
-    width: 10px;
-}
-#left::-webkit-scrollbar-track {
-    background: #111;
-    border-left: 1px solid #333;
-}
+/* 왼쪽 스크롤 */
+#left::-webkit-scrollbar { width: 10px; }
+#left::-webkit-scrollbar-track { background: #111; }
 #left::-webkit-scrollbar-thumb {
     background: #444;
     border-radius: 6px;
     border: 2px solid #111;
 }
-#left::-webkit-scrollbar-thumb:hover {
-    background: #666;
-}
-#left {
-    scrollbar-width: thin;
-    scrollbar-color: #444 #111;
-}
+#left { scrollbar-width: thin; scrollbar-color: #444 #111; }
 
-.section {
-    margin-bottom: 16px;
-}
-
+.section { margin-bottom: 16px; }
 .section h3 {
     margin: 6px 0;
     border-bottom: 1px solid #333;
@@ -79,8 +65,8 @@ h1 {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
 #timer {
@@ -89,9 +75,7 @@ h1 {
     user-select: none;
 }
 
-.ready {
-    color: red;
-}
+.ready { color: red; }
 
 #scramble {
     margin-top: 10px;
@@ -118,7 +102,6 @@ textarea {
     resize: none;
 }
 
-/* 버튼 */
 button {
     width: 100%;
     padding: 6px;
@@ -126,22 +109,23 @@ button {
     cursor: pointer;
 }
 
+/* 기록 리스트 */
+#recordList {
+    list-style: none;
+    padding-left: 0;
+    font-family: monospace;
+}
+
 /* 모바일 */
 @media (max-width: 768px) {
-    #container {
-        flex-direction: column;
-    }
-
+    #container { flex-direction: column; }
     #left, #right {
         width: 100%;
         height: 200px;
         border: none;
         border-top: 2px solid #333;
     }
-
-    #timer {
-        font-size: 60px;
-    }
+    #timer { font-size: 60px; }
 }
 </style>
 </head>
@@ -154,16 +138,10 @@ button {
 
 <!-- 왼쪽 -->
 <div id="left">
-
     <div class="section">
         <h3>기록</h3>
         <ul id="recordList"></ul>
         <button id="clearBtn">기록 초기화</button>
-    </div>
-
-    <div class="section">
-        <h3>평균 기록 (AO5)</h3>
-        <div id="average">기록 부족</div>
     </div>
 
     <div class="section">
@@ -176,7 +154,6 @@ button {
             <li>YJ MGC</li>
         </ul>
     </div>
-
 </div>
 
 <!-- 중앙 -->
@@ -193,7 +170,7 @@ button {
 
 </div>
 
-<script>
+<script defer>
 document.addEventListener("DOMContentLoaded", () => {
 
 let startTime = 0;
@@ -206,7 +183,6 @@ const timer = document.getElementById("timer");
 const memo = document.getElementById("memo");
 const recordList = document.getElementById("recordList");
 const scrambleDiv = document.getElementById("scramble");
-const averageDiv = document.getElementById("average");
 const clearBtn = document.getElementById("clearBtn");
 
 /* 메모 */
@@ -217,47 +193,51 @@ memo.addEventListener("input", () => {
 memo.addEventListener("focus", () => {
     timerEnabled = false;
     stopTimer();
-    timer.classList.remove("ready");
 });
 document.addEventListener("mousedown", e => {
     if (!memo.contains(e.target)) timerEnabled = true;
 });
 
-/* 기록 */
+/* 기록 표시 (time | AO5 형식) */
 function loadRecords() {
     const records = JSON.parse(localStorage.getItem("records") || "[]");
     recordList.innerHTML = "";
-    records.forEach(r => {
+
+    const header = document.createElement("li");
+    header.textContent = "time   | AO5";
+    header.style.fontWeight = "bold";
+    recordList.appendChild(header);
+
+    const line = document.createElement("li");
+    line.textContent = "────────────";
+    recordList.appendChild(line);
+
+    records.forEach((r, i) => {
+        let ao5Text = "—";
+
+        if (records.length >= i + 5) {
+            const ao5 =
+                records.slice(i, i + 5)
+                .reduce((sum, x) => sum + x.time, 0) / 5;
+            ao5Text = ao5.toFixed(3);
+        }
+
         const li = document.createElement("li");
-        li.textContent = r.text;
+        li.textContent =
+            `${r.time.toFixed(3).padStart(6)} | ${ao5Text}`;
         recordList.appendChild(li);
     });
-    updateAverage(records);
 }
 
+/* 기록 저장 */
 function saveRecord(time) {
-    const now = new Date();
-    const text =
-        `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 / ` +
-        `${now.getHours()}시 ${now.getMinutes()}분 - ${time}s`;
-
     const records = JSON.parse(localStorage.getItem("records") || "[]");
-    records.unshift({ text, value: parseFloat(time) });
+    records.unshift({ time: parseFloat(time) });
     localStorage.setItem("records", JSON.stringify(records));
     loadRecords();
 }
 
-function updateAverage(records) {
-    if (records.length < 5) {
-        averageDiv.textContent = "기록 부족";
-        return;
-    }
-    const avg = (
-        records.slice(0,5).reduce((a,b)=>a+b.value,0) / 5
-    ).toFixed(3);
-    averageDiv.textContent = avg + "s";
-}
-
+/* 초기화 */
 clearBtn.onclick = () => {
     localStorage.removeItem("records");
     loadRecords();
@@ -282,8 +262,14 @@ function generateScramble() {
     const m = ["R","L","U","D","F","B"];
     const s = ["","'","2"];
     let r = [];
+    let last = "";
     for (let i = 0; i < 20; i++) {
-        r.push(m[Math.floor(Math.random()*6)] + s[Math.floor(Math.random()*3)]);
+        let mv;
+        do {
+            mv = m[Math.floor(Math.random()*6)];
+        } while (mv === last);
+        last = mv;
+        r.push(mv + s[Math.floor(Math.random()*3)]);
     }
     scrambleDiv.textContent = r.join(" ");
 }
@@ -319,7 +305,6 @@ timer.addEventListener("touchstart", () => {
     holding = true;
     timer.classList.add("ready");
 });
-
 timer.addEventListener("touchend", () => {
     if (!timerEnabled) return;
     if (holding && !running) {
